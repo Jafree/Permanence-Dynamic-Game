@@ -55,9 +55,12 @@ def permanence_node(g,node_v):
                 for node_j in neighbor_set:
                     if g.is_edge_exists(node_i,node_j):
                         inner_edges += 1
-            if len(neighbor_set) < 2:
+            "Debug  TODO:"
+            if len(neighbor_set) <= 2:
                 "The nodes in community is less than 2, clustering is 0"
-                clustering_coefficient = 0  
+                "Debug: TODO:"
+                clustering_coefficient = 1 
+                "clustering_coefficient = 0" 
             else:
                 "Otherwise, do computation"
                 clustering_coefficient = inner_edges /float( len(neighbor_set) * (len(neighbor_set)-1) )
@@ -65,8 +68,20 @@ def permanence_node(g,node_v):
             continue
         "The nodes inside the community and neighboring node_v"
         inner_node_set = neighbor_set.intersection(g.community_map_to_node[community])
+        
+        "Compute the max number of the external node in a community"
+        external_node_set = neighbor_set - inner_node_set
+        community_number_dict = defaultdict(lambda: 0)
+        for node_e in external_node_set:
+            for community_e in g.node_map_to_community[node_e]:
+                community_number_dict[community_e] += 1
+        e_max = max(community_number_dict.itervalues())
+        
         "When the number of neighboring nodes is less than two, the clustering coefficient is zero"
-        if len(inner_node_set) <2:
+        "TODO:debug"
+        if len(inner_node_set) <= 2 and len(inner_node_set)>e_max:
+            clustering_coefficient = 1
+        elif len(inner_node_set) <= 2:
             clustering_coefficient = 0
         else:
             "Otherwise, compute the clustering coefficient"
@@ -75,13 +90,6 @@ def permanence_node(g,node_v):
                     if g.is_edge_exists(node_i,node_j):
                         inner_edges += 1
             clustering_coefficient = inner_edges /float( len(inner_node_set) * (len(inner_node_set)-1) )
-        "Compute the max number of the external node in a community"
-        external_node_set = neighbor_set - inner_node_set
-        community_number_dict = defaultdict(lambda: 0)
-        for node_e in external_node_set:
-            for community_e in g.node_map_to_community[node_e]:
-                community_number_dict[community_e] += 1
-        e_max = max(community_number_dict.itervalues())
         
         permanence_sum += (len(inner_node_set) / float(e_max * degree_node_v) - 1 + clustering_coefficient)
     return permanence_sum
@@ -109,7 +117,7 @@ def permanence(g):
     permanence_sum = 0
     for node_v in g.graphlist.iterkeys():
         permanence_sum += permanence_node(g,node_v)
-    return permanence_sum / sum(len(neighboring_node) for neighboring_node in g.graphlist.itervalues())
+    return permanence_sum / sum(len(g.node_map_to_community[neighboring_node]) for neighboring_node in g.graphlist.iterkeys())
     
     
     

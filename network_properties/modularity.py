@@ -110,7 +110,7 @@ def modularity(g):
     if(len(g.community_map_to_node) == 1):
         return 0
     edge_count = g.edge_count
-    for community in g.node_map_to_community[1]:
+    for community in g.community_map_to_node.iterkeys():
         "W.r.t each community, calculate the modularity"
         node_set_in_community = g.community_map_to_node[community]
         for node_i in node_set_in_community:
@@ -121,7 +121,9 @@ def modularity(g):
                 "For each node in the community"
                 if(node_i == node_j):
                     continue      
-                modularity = modularity - degree_node_i * len(g.graphlist[node_j])/float(2*edge_count) + 1 \
-                if node_j in neighbor_set else modularity - degree_node_i * len(g.graphlist[node_j])/float(2*edge_count)
+                if node_j in neighbor_set:
+                    modularity = modularity - degree_node_i * len(g.graphlist[node_j])/float(2*edge_count) + 1
+                else :
+                    modularity = modularity - degree_node_i * len(g.graphlist[node_j])/float(2*edge_count)
     return modularity / float(2 * edge_count)
                     
