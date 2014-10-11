@@ -51,6 +51,7 @@ class graph:
         self.edge_count = sum(len(i) for i in self.graphlist.itervalues())/2
         self.community_map_to_node = defaultdict(set)
         self.node_map_to_community = defaultdict(set)
+        self.utility_list = defaultdict(int)
         current_file.close()
         "print self.graphlist"
     
@@ -89,7 +90,8 @@ class graph:
         """
         self.overlapping_penalty = penalty
         "Each agent belongs to its own community at the initial stage"
-        if initial == "restart" or (last_graph == None):
+        disequilibrium_node_list = defaultdict(int)
+        if initial == "restart" or last_graph == None:
             '''
             Store the node to community and community to node in dictionaries, such as
             {
@@ -104,22 +106,45 @@ class graph:
             "Store the utility of each node"
             self.utility_list = {node : self.initial_singleton_community(node)[0] for node in self.graphlist.iterkeys()}
             
-        '''
-        Each agent belongs to its community in last snapshot if it had exist in last snapshot;
-        Otherwise, it will belong to its own singleton community.
-        '''
-        if initial == "resume":
+            '''
+            Each agent belongs to its community in last snapshot if it had exist in last snapshot;
+            Otherwise, it will belong to its own singleton community.
+            '''
+        elif initial == "resume":
             '''
             TODO:
             Realization
             '''
-            """
-            self.node_map_to_community = {node : last_graph.community_map_to_node[node] for node in last_graph.graphlist.iterkeys()}
-            """
-            pass
+            
+            "For nodes exist in both last and current graphs, preserve its community"
+            for node,communities in last_graph.node_map_to_community.iteritems():
+                if node in self.graphlist.iterkeys():
+                    self.node_map_to_community[node] = communities
+                    for community in communities:
+                        self.community_map_to_node[community].add(node)
+                    "If the neighbors are not the exact same, then add it into the disequilibrium_list"
+                    if self.graphlist[node] != last_graph.graphlist[node]:
+                        disequilibrium_node_list[node] = len(self.graphlist[node])
+            "For nodes don't exist in both graphs, create its own community"
+            for node in self.graphlist.iterkeys():
+                if node not in self.node_map_to_community.iterkeys():
+                    singleton_community = node
+                    while singleton_community in self.community_map_to_node.iterkeys():
+                        singleton_community += 1
+                    self.node_map_to_community[node] = {singleton_community}
+                    self.community_map_to_node[singleton_community] = {node}
+                    "Add the new node into the disequilibrium list"
+                    disequilibrium_node_list[node] = len(self.graphlist[node])
+            "Calculate the utility for each node"
+            for each_node,neighbors in self.graphlist.iteritems():
+                utility_each_node = modularity.modified_modularity_node(self, each_node)\
+                + permanence.permanence_node(self, each_node)\
+                -(len(self.node_map_to_community[each_node])-1)*self.overlapping_penalty
+                self.utility_list[each_node] = utility_each_node
+                """Add each node into the disequilibrium_node_list
+                disequilibrium_node_list[each_node] = len(neighbors)"""
         
-        
-        if initial == "penalty":
+        elif initial == "penalty":
             '''
              TODO:
                  The penalty initial will be done
@@ -133,7 +158,7 @@ class graph:
         "Choose a node for the node list if there are nodes in disequilibrium state"
         loop_count = 0
         while len(disequilibrium_node_list) > 0:
-            print len(disequilibrium_node_list)
+            "print len(disequilibrium_node_list)"
             "Random strategy"
             if select == "random":
                 "Control the loop number"
