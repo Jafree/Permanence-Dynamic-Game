@@ -9,7 +9,7 @@ import graph
 import datetime
 from network_properties import *
 
-def dynamic_control(dirpath,outdirpath,initial = "resume",select = "random",penalty = 0.5):
+def cluster_analysis(dirpath,outdirpath):
     '''
         Input:  a path for a folder as dirpath
                 a path for output as outdirpath
@@ -22,14 +22,16 @@ def dynamic_control(dirpath,outdirpath,initial = "resume",select = "random",pena
         return False
     if not os.path.isdir(outdirpath):
         os.mkdir(outdirpath)
-    
-    last_graph = None      
-    time_cost = []
+    time_cost = [] 
     perm = []
     modu = []
     community_number = []
     max_community_size = []
-    average_commmunity_size = []    
+    average_commmunity_size = []
+    membership_pool = []
+    for i in xrange(1,734):
+            membership_pool.append("E:/9_Dataset/Evolving_Network/as-733/community_node_outputs_labelrankT/syn_LabelRankT_"+str(i)+"_D0_W0_S1_POWER1_THR0.1_I4_MTHR0.6_RST200.icpm")
+    file_count = 0
     "Store the graph list and community result ([0]node to community and [1]community to node) from last snapshot"
     for infile in os.listdir(dirpath):  
         "For each snapshot"
@@ -39,10 +41,24 @@ def dynamic_control(dirpath,outdirpath,initial = "resume",select = "random",pena
         print dirpath + "/" +infile
         cur_graph = graph.graph(dirpath + "/" +infile)
         "Run community detection on current graph using last graph and initializing strategy"
-        starttime = datetime.datetime.now()
-        cur_graph.permanence_modularity_community(last_graph,initial,select)
-        endtime = datetime.datetime.now()
-        time_cost.append((endtime-starttime).seconds)
+        f_cluster = open(membership_pool[file_count])
+        print membership_pool[file_count]
+        file_count += 1
+        cluster_count = 0
+        for line in f_cluster:
+            if len(line)!="\n":
+                members = set(map(int,line.rstrip().split()))
+                cur_graph.community_map_to_node[cluster_count] = members
+                for member in members:
+                    cur_graph.node_map_to_community[member] = {cluster_count}
+                cluster_count+=1
+        """
+        print len(cur_graph.graphlist)
+        print len(cur_graph.node_map_to_community)
+        print cur_graph.node_map_to_community
+        print cur_graph.community_map_to_node
+        """
+        time_cost.append(0)
         perm.append(permanence.permanence(cur_graph))
         modu.append(modularity.modularity(cur_graph))
         community_number.append(len(cur_graph.community_map_to_node))
@@ -56,7 +72,7 @@ def dynamic_control(dirpath,outdirpath,initial = "resume",select = "random",pena
         '''
         "Have processed current snapshot yet, we will move to next snapshot."
         last_graph = cur_graph
-    f = open(outdirpath+"/analysis.txt","w")
+    f = open(outdirpath+"/analysis_labelrankT.txt","w")
     for i in xrange(len(time_cost)):
         f.write(str(time_cost[i])+" "+str(perm[i])+" "+str(modu[i])+\
         " "+str(community_number[i])+" "+str(max_community_size[i])+" "+str(average_commmunity_size[i])+"\n")
@@ -67,8 +83,7 @@ if __name__ == '__main__':
     
     "Set a output folder"
     outdirpath = dirpath + "/output"
-    
-    dynamic_control(dirpath,outdirpath,penalty=0.5)
+    cluster_analysis(dirpath,outdirpath)
     
     print "Done!"
     '''

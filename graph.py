@@ -110,6 +110,12 @@ class graph:
             Each agent belongs to its community in last snapshot if it had exist in last snapshot;
             Otherwise, it will belong to its own singleton community.
             '''
+        elif initial == "neighborhood":
+            """
+            TODO:
+            Realization
+            """
+            
         elif initial == "resume":
             '''
             TODO:
@@ -167,7 +173,7 @@ class graph:
                     break
                 selected_node = random.choice(disequilibrium_node_list.keys())
                 del disequilibrium_node_list[selected_node]
-            
+                "print neighbors=,len(self.graphlist[selected_node])"
             if select == "highdegree":
                 "TODO:"
                 pass
@@ -360,14 +366,20 @@ class graph:
         if len(current_community_set)>= 2 or self.utility_list[selected_node]<self.overlapping_penalty:
             return -100,-100,{},-100
         penalty = (len(current_community_set)+1 -1)*self.overlapping_penalty
-        join_community_set = set({})
+        "join_community_set = set({})"
+        "The community with neighboring number"
+        join_community_dict = defaultdict(lambda:0)
+        neighbors_in_community_number = 0
         "Find communities to join"
         for each_node in self.graphlist[selected_node]:
             for each_community in self.node_map_to_community[each_node]:
                 if each_community not in current_community_set:
-                    join_community_set.add(each_community)
+                    "join_community_set.add(each_community)"
+                    join_community_dict[each_community]+=1
+                else:
+                    neighbors_in_community_number += 1
         "When the selected_node and its neighbors are in the same community"
-        if len(join_community_set)==0:
+        if len(join_community_dict)==0:
             return -100,-100,{},-100
         "Calculate the utility of each community to join in "
         max_community = -100
@@ -377,6 +389,12 @@ class graph:
         utility_neighbors_now = self.utility_list[selected_node]
         for each_node in self.graphlist[selected_node]:
             utility_neighbors_now += self.utility_list[each_node]
+        max_community_number = max(join_community_dict.itervalues())
+        if neighbors_in_community_number >= 2*max_community_number:
+            return -100,-100,{},-100
+        if max_community_number == 1:
+            join_community_set = self.node_map_to_community[min(self.graphlist[selected_node], key=lambda x: len(self.graphlist[x]))]
+        join_community_set = {x for x,y in join_community_dict.iteritems() if y==max_community_number}
         for a_community in join_community_set:
             self.node_map_to_community[selected_node].add(a_community)
             self.community_map_to_node[a_community].add(selected_node)
@@ -396,7 +414,7 @@ class graph:
             
             self.node_map_to_community[selected_node].remove(a_community)
             self.community_map_to_node[a_community].remove(selected_node)
-            if utility_neighbors_join > utility_neighbors_now:
+            if utility_neighbors_join >= utility_neighbors_now:
                 utility_neighbors_now = utility_neighbors_join
                 max_utility = utility_join
                 max_community = a_community
@@ -426,8 +444,10 @@ class graph:
         if e_max < len(inner_node_set):
             return -100,-100,{},-100
         "print community_number_dict"
-        
-        switch_community_set.update({community for (community,community_number) in community_number_dict.iteritems() if community_number == e_max})
+        if e_max == 1:
+            switch_community_set = self.node_map_to_community[min(external_node_set, key=lambda x: len(self.graphlist[x]))]
+        else:
+            switch_community_set.update({community for (community,community_number) in community_number_dict.iteritems() if community_number == e_max})
         
         
         penalty = (len(current_community_set)-1)*self.overlapping_penalty
@@ -477,7 +497,7 @@ class graph:
                     utility_neighbors_dict_final.update(utility_neighbors_dict)
                     utility_neighbors_now = utility_neighbors_switch
                     
-                elif utility_neighbors_switch>utility_neighbors_now:
+                elif utility_neighbors_switch>=utility_neighbors_now:
                     max_utility = utility_switch
                     max_community = (each_community_out,each_community_in)
                     utility_neighbors_dict_final.update(utility_neighbors_dict)

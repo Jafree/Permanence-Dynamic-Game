@@ -23,8 +23,11 @@ for filename in os.listdir(direct):
         print "Processing:"+direct + "/"+filename+"\n"
         start = datetime.datetime.now()
         g = Graph.Read_Edgelist(direct + "/"+filename, directed=False)
-        community = Graph.community_infomap(g)
-        "community = Graph.community_label_propagation(g)"
+        "community = Graph.community_spinglass(g)"
+        "dendrogram = Graph.community_fastgreedy(g)"
+        "community = dendrogram.as_clustering()"
+        "community = Graph.community_infomap(g)"
+        community = Graph.community_label_propagation(g)
         "community = Graph.community_multilevel(g)"
         end = datetime.datetime.now()
         t = end - start
@@ -42,11 +45,11 @@ for filename in os.listdir(direct):
         average_community = average_community/float(len(community))
         max_community_size.append(max_community)
         average_community_size.append(average_community)
-f = open(direct+"/output_others_code/analysis_infomap.txt","w")
+f = open(direct+"/output_others_code/analysis_label_propagation_oregon.txt","w")
 for i in xrange(len(time_cost)):
     f.write(str(time_cost[i])+" "\
     +str(perm[i])+" "+str(modu[i])+\
     " "+str(community_number[i])+" "+str(max_community_size[i])+" "+str(average_community_size[i])+"\n")
 f.close() 
-        
+print "Done!"
         

@@ -1,5 +1,8 @@
 from collections import defaultdict
 import os
+"""
+This function is used for mapping the edge list to continuous from 0 and deleting the self loop
+"""
 def map_edge_to_continuous(source_file_path,target_file_path):
 	scan_old_to_new = {}
 	count = 0

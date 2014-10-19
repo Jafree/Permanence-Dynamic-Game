@@ -20,7 +20,7 @@ def my_igraph_plot(g, membership=None,format=None):
             else:
                 edges_colors.append("black")
         gcopy.delete_edges(edges)
-        layout = gcopy.layout("kk")
+        layout = gcopy.layout_graphopt()
         g.es["color"] = edges_colors
     else:
         layout = g.layout("kk")
@@ -29,15 +29,15 @@ def my_igraph_plot(g, membership=None,format=None):
     visual_style["vertex_label_dist"] = 0
     visual_style["vertex_shape"] = "circle"
     visual_style["edge_color"] = g.es["color"]
-    #visual_style["bbox"] = (4000, 2500)
+    visual_style["bbox"] = (4000, 2500)
     #visual_style["bbox"] = (1024, 768)
     #visual_style["bbox"] = (960,720)
-    visual_style["vertex_size"] = 30
+    #visual_style["vertex_size"] = 30
     visual_style["layout"] = layout
     visual_style["margin"] = 40
     #visual_style["edge_label"] = g.es["weight"]
-    for vertex in g.vs():
-        vertex["label"] = vertex.index
+    #for vertex in g.vs():
+    #   vertex["label"] = vertex.index
     if membership is not None:
         colors = []
         for i in range(0, max(membership)+1):
@@ -50,7 +50,10 @@ def my_igraph_plot(g, membership=None,format=None):
     else:
         igraph.plot(g, **visual_style)
 if __name__ == "__main__":
-    g = igraph.Graph.Famous("Zachary")
-    cl = g.community_infomap()
+    g = igraph.Graph.Read_Edgelist("../as19971108_Conti.txt", directed=False)
+    #g=igraph.Graph.Famous("Zachary")
+    cl = g.community_multilevel()
     membership = cl.membership
-    my_igraph_plot(g, membership)
+    print "Draw"
+    my_igraph_plot(g,membership)
+    print "Done"

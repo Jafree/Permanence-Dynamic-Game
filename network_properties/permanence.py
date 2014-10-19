@@ -71,10 +71,21 @@ def permanence_node(g,node_v):
         
         "Compute the max number of the external node in a community"
         external_node_set = neighbor_set - inner_node_set
+        
         community_number_dict = defaultdict(lambda: 0)
+        
         for node_e in external_node_set:
             for community_e in g.node_map_to_community[node_e]:
                 community_number_dict[community_e] += 1
+        if len(community_number_dict)==0:
+            for node_e in external_node_set:
+                print g.node_map_to_community[node_e]
+                               
+            print "node_v",node_v
+            print "node_v_community",g.node_map_to_community[node_v]
+            print "community's nodes", g.community_map_to_node[community]
+            print external_node_set
+            return 0
         e_max = max(community_number_dict.itervalues())
         
         "When the number of neighboring nodes is less than two, the clustering coefficient is zero"
@@ -118,7 +129,6 @@ def permanence(g):
     for node_v in g.graphlist.iterkeys():
         permanence_sum += permanence_node(g,node_v)
     return permanence_sum / sum(len(g.node_map_to_community[neighboring_node]) for neighboring_node in g.graphlist.iterkeys())
-    
     
     
     
