@@ -3,6 +3,12 @@
 ### Overview
 This program, permanence dynamic game, is used for clustering dynamic overlapping communities.
 
+### Requirements
+Python 2.7 and igraph package for Python
+
+### Run
+edit and run the file "dynamic_control.py"
+
 ### Cite
 If you make use of this algorithm in your work, please cite the following paper
 ```
