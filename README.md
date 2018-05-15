@@ -1,6 +1,7 @@
+## PDG: Permanence Dynamic Game for dynamic community detection
 
-
-### This program, permanence dynamic game, is used for clustering dynamic overlapping communities.
+### Overview
+This program, permanence dynamic game, is used for clustering dynamic overlapping communities.
 
 ### Cite
 If you make use of this algorithm in your work, please cite the following paper
